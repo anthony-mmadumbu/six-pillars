@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#F7F2E7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Six Pillars" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" type="image/png" href="icon-192.png" />
+  <title>Six Pillars</title>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; background: #F7F2E7; overscroll-behavior-y: contain; }
+    body { font-family: Inter, system-ui, sans-serif; }
+    #root { min-height: 100vh; min-height: 100dvh; }
+
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  .fade-in { animation: fadeIn 0.4s cubic-bezier(.4,.0,.2,1); }
+  .slide-in { animation: slideIn 0.5s cubic-bezier(.4,.0,.2,1) backwards; }
+  .slide-up { animation: slideUp 0.35s cubic-bezier(.4,.0,.2,1); }
+  .toast-in { animation: toastIn 0.3s cubic-bezier(.4,.0,.2,1); }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+  button { font-family: inherit; cursor: pointer; }
+  button:disabled { cursor: default; }
+  input { font-family: inherit; }
+
+  /* ---- Responsive layout ---- */
+  /* Mobile-first: container is narrow, single-column. */
+  .sp-container { max-width: 480px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+  .sp-main { padding-top: 18px; padding-bottom: 32px; }
+  .sp-header-pad { padding-top: 14px; padding-bottom: 12px; }
+
+  /* Two-column grid utility (used on tablets/desktop only) */
+  .sp-grid-2 { display: grid; grid-template-columns: 1fr; gap: 10px; }
+  .sp-pillar-list { display: flex; flex-direction: column; gap: 10px; }
+
+  /* Bottom nav: full width on mobile, anchored to viewport edges */
+  .sp-bottom-nav-wrap { position: fixed; bottom: 0; left: 0; right: 0; padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom); background: #F7F2E7F0; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid #E8E2D4; z-index: 20; }
+  .sp-bottom-nav { max-width: 480px; margin: 0 auto; display: flex; justify-content: space-around; padding: 10px 8px 14px; }
+
+  /* Tablet: 600px+ — wider container, larger touch targets, two-column pillar grid */
+  @media (min-width: 600px) {
+    .sp-container { max-width: 720px; padding-left: 24px; padding-right: 24px; }
+    .sp-main { padding-top: 24px; padding-bottom: 40px; }
+    .sp-pillar-list { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .sp-grid-2 { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .sp-bottom-nav { max-width: 600px; }
+    .sp-cal-cell-num { font-size: 14px !important; }
+  }
+
+  /* Desktop: 960px+ — even wider, three-column pillar grid */
+  @media (min-width: 960px) {
+    .sp-container { max-width: 1040px; padding-left: 32px; padding-right: 32px; }
+    .sp-pillar-list { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+    .sp-grid-2 { grid-template-columns: repeat(3, 1fr); }
+    .sp-bottom-nav { max-width: 720px; }
+    .sp-summary-card { padding: 28px 32px !important; }
+    .sp-summary-num { font-size: 56px !important; }
+    .sp-big-stat-num { font-size: 72px !important; }
+  }
+
+  /* Very wide: 1280px+ — cap so it doesn't sprawl */
+  @media (min-width: 1280px) {
+    .sp-container { max-width: 1200px; }
+    .sp-pillar-list { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  /* Modal: bottom sheet on mobile, centered card on tablet+ */
+  .sp-modal-overlay { position: fixed; inset: 0; background: #1F1B1480; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; z-index: 50; }
+  .sp-modal-sheet { width: 100%; max-width: 480px; max-height: 92vh; background: #F7F2E7; border-radius: 24px 24px 0 0; display: flex; flex-direction: column; overflow: hidden; }
+  @media (min-width: 600px) {
+    .sp-modal-overlay { align-items: center; padding: 24px; }
+    .sp-modal-sheet { max-width: 560px; max-height: 80vh; border-radius: 24px; }
+  }
+
+  /* Calendar cells stay square but get bigger on larger screens */
+  .sp-cal-cell-num { font-size: 13px; }
+
+  /* Backup buttons stack on mobile, side-by-side on tablet+ */
+  .sp-backup-row { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+  @media (min-width: 600px) {
+    .sp-backup-row { flex-direction: row; }
+    .sp-backup-row > button { flex: 1; }
+  }
+
+  /* Touch-friendly: min 44px tap target on small screens */
+  @media (max-width: 599px) {
+    .sp-tap { min-height: 44px; }
+  }
+
+  </style>
+</head>
+<body>
+  <div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#8B7E6B;font-family:Inter,sans-serif">Loading…</div></div>
+  <script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo, useRef } = React;
+
+
+// localStorage adapter
+const safeGet = (key) => {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch { return null; }
+};
+const safeSet = (key, value) => {
+  try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
+};
+
+// Inline SVG icons (replacement for lucide-react)
+const Icon = ({ children, size = 16, color = 'currentColor', strokeWidth = 2, fill = 'none', style = {} }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>{children}</svg>
+);
+const Check = (p) => <Icon {...p}><polyline points="20 6 9 17 4 12" /></Icon>;
+const X = (p) => <Icon {...p}><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></Icon>;
+const Flame = (p) => <Icon {...p} fill={p.fill || p.color || 'currentColor'}><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z" /></Icon>;
+const Plus = (p) => <Icon {...p}><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></Icon>;
+const Trash2 = (p) => <Icon {...p}><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /></Icon>;
+const ChevronLeft = (p) => <Icon {...p}><polyline points="15 18 9 12 15 6" /></Icon>;
+const ChevronRight = (p) => <Icon {...p}><polyline points="9 18 15 12 9 6" /></Icon>;
+const Settings = (p) => <Icon {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></Icon>;
+const Edit3 = (p) => <Icon {...p}><path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" /></Icon>;
+const BarChart3 = (p) => <Icon {...p}><path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" /></Icon>;
+const CalendarIcon = (p) => <Icon {...p}><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></Icon>;
+const Clock = (p) => <Icon {...p}><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></Icon>;
+const Star = (p) => <Icon {...p}><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></Icon>;
+const Utensils = (p) => <Icon {...p}><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" /><path d="M7 2v20" /><path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" /></Icon>;
+const Download = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></Icon>;
+const Upload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></Icon>;
+
+
+// ============ Storage ============
+// IMPORTANT: keep these keys stable across versions to never lose data.
+const STORAGE = {
+  pillars: 'pillars:v2',
+  entries: 'entries:v2',
+  meals: 'meals:v2',
+};
+
+const DEFAULT_PILLARS = [
+  { id: 'cyber',   name: 'Cybersecurity',     emoji: '🛡️', color: '#5B6CFF', tracksTime: true },
+  { id: 'gym',     name: 'Gym / Exercise',    emoji: '💪', color: '#FF6B4A', tracksTime: true },
+  { id: 'reading', name: 'Reading',           emoji: '📚', color: '#8B5A3C', tracksTime: true },
+  { id: 'sleep',   name: 'Sleep (7+ hrs)',    emoji: '😴', color: '#6B7FBF', tracksTime: true },
+  { id: 'prayer',  name: 'Prayer / Meditation', emoji: '🙏', color: '#C9A961', tracksTime: true },
+  { id: 'jobs',    name: 'Job Applications',  emoji: '💼', color: '#3D8B7A', tracksTime: false },
+  { id: 'eating',  name: 'Healthy Eating',    emoji: '🍎', color: '#D4604F', tracksTime: false, isMealPillar: true },
+];
+
+// ============ Meal scoring ============
+const MEAL_RULES = {
+  veggies:    { points: +1.5, words: ['salad','vegetable','veggie','spinach','kale','broccoli','carrot','cucumber','lettuce','tomato','pepper','courgette','aubergine','cabbage','cauliflower','greens'] },
+  fruit:      { points: +1.0, words: ['apple','banana','berry','berries','orange','grape','melon','pear','peach','mango','pineapple','fruit'] },
+  leanProtein:{ points: +1.0, words: ['chicken breast','grilled chicken','turkey','fish','salmon','tuna','cod','tofu','beans','lentil','chickpea','egg','eggs'] },
+  wholegrain: { points: +0.8, words: ['oats','oatmeal','porridge','brown rice','quinoa','wholemeal','whole wheat','wholewheat','wholegrain'] },
+  homemade:   { points: +0.5, words: ['homemade','home cooked','home-cooked','cooked at home'] },
+  water:      { points: +0.3, words: ['water','green tea','herbal tea'] },
+  nuts:       { points: +0.5, words: ['nuts','almond','walnut','cashew','peanut'] },
+  fried:      { points: -1.5, words: ['fried','deep fried','deep-fried','crispy fried','fry-up'] },
+  fastFood:   { points: -2.0, words: ['mcdonald','kfc','burger king','dominos','pizza hut','nandos','five guys','subway','takeaway','take away','take-away','fast food'] },
+  sugary:     { points: -1.5, words: ['cake','biscuit','cookie','chocolate','ice cream','candy','sweets','donut','doughnut','pastry','muffin','sugar','syrup','frosting'] },
+  fizzyDrink: { points: -1.5, words: ['coke','pepsi','fanta','sprite','soda','fizzy','energy drink','red bull','monster'] },
+  alcohol:    { points: -1.5, words: ['beer','wine','vodka','whisky','whiskey','rum','gin','cocktail','alcohol','lager','ale'] },
+  processed:  { points: -1.0, words: ['sausage','bacon','hot dog','nugget','crisps','chips','fries','instant noodle','pot noodle','ready meal'] },
+  refined:    { points: -0.5, words: ['white bread','white rice','white pasta','baguette'] },
+  heavyCream: { points: -0.8, words: ['creamy','cream sauce','mayo','mayonnaise','heavy cream','butter sauce'] },
+};
+
+function scoreMeal(name) {
+  const text = (name || '').toLowerCase();
+  if (!text.trim()) return { score: 3, reasons: [] };
+  let score = 3;
+  const reasons = [];
+  for (const [key, rule] of Object.entries(MEAL_RULES)) {
+    for (const word of rule.words) {
+      if (text.includes(word)) {
+        score += rule.points;
+        reasons.push({ word, points: rule.points });
+        break;
+      }
+    }
+  }
+  score = Math.max(1, Math.min(5, score));
+  score = Math.round(score * 2) / 2;
+  return { score, reasons };
+}
+
+// ============ Date helpers ============
+// Compare by calendar day only, not by timestamp — fixes "today appears as future" bug
+const fmt = (d) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+const startOfDay = (d) => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x;
+};
+const addDays = (d, n) => { const x = startOfDay(d); x.setDate(x.getDate() + n); return x; };
+const sameDay = (a, b) => fmt(a) === fmt(b);
+const dayCompare = (a, b) => {
+  // Returns -1, 0, or 1 based on calendar date only
+  const ka = fmt(a); const kb = fmt(b);
+  if (ka < kb) return -1;
+  if (ka > kb) return 1;
+  return 0;
+};
+const fmtMinutes = (mins) => {
+  if (!mins) return '';
+  if (mins < 60) return `${mins}m`;
+  const h = Math.floor(mins / 60); const m = mins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+};
+
+// ============ Migration / merge helpers ============
+// When loading saved data, merge with defaults so new pillars appear without wiping old data
+function mergePillars(saved) {
+  if (!Array.isArray(saved) || saved.length === 0) return DEFAULT_PILLARS;
+  // Keep saved pillars but ensure each has the fields current code expects
+  return saved.map(p => ({
+    tracksTime: false,
+    isMealPillar: false,
+    color: '#5B6CFF',
+    emoji: '✨',
+    name: 'Pillar',
+    id: `p_${Date.now()}`,
+    ...p,
+  }));
+}
+
+function HabitTracker() {
+  const [pillars, setPillars] = useState(DEFAULT_PILLARS);
+  const [entries, setEntries] = useState({});
+  const [meals, setMeals] = useState({});
+  // Use startOfDay to avoid timestamp comparison bugs
+  const [today, setToday] = useState(() => startOfDay(new Date()));
+  const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
+  const [view, setView] = useState('today');
+  const [loading, setLoading] = useState(true);
+  const [noteEditor, setNoteEditor] = useState(null);
+  const [timeEditor, setTimeEditor] = useState(null);
+  const [mealModalOpen, setMealModalOpen] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  // Refresh "today" if app is left open across midnight
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const newToday = startOfDay(new Date());
+      if (!sameDay(newToday, today)) setToday(newToday);
+    }, 60000); // check every minute
+    return () => clearInterval(interval);
+  }, [today]);
+
+  useEffect(() => {
+    const p = safeGet(STORAGE.pillars); if (p) setPillars(mergePillars(p));
+    const e = safeGet(STORAGE.entries); if (e) setEntries(e);
+    const m = safeGet(STORAGE.meals); if (m) setMeals(m);
+    setLoading(false);
+  }, []);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2400);
+  };
+
+  const savePillars = (n) => { setPillars(n); safeSet(STORAGE.pillars, n); };
+  const saveEntries = (n) => { setEntries(n); safeSet(STORAGE.entries, n); };
+  const saveMeals = (n) => { setMeals(n); safeSet(STORAGE.meals, n); };
+
+  const dateKey = fmt(selectedDate);
+  const dayData = entries[dateKey] || {};
+  const dayMeals = meals[dateKey] || [];
+
+  const togglePillar = (pillarId) => {
+    const cur = dayData[pillarId];
+    const next = { ...entries };
+    if (!next[dateKey]) next[dateKey] = {};
+    if (!cur) next[dateKey][pillarId] = { done: true, note: '', minutes: 0 };
+    else if (cur.done === true) next[dateKey][pillarId] = { ...cur, done: false };
+    else {
+      delete next[dateKey][pillarId];
+      if (Object.keys(next[dateKey]).length === 0) delete next[dateKey];
+    }
+    saveEntries(next);
+  };
+
+  const updateField = (pillarId, patch) => {
+    const next = { ...entries };
+    if (!next[dateKey]) next[dateKey] = {};
+    const existing = next[dateKey][pillarId] || { done: null, note: '', minutes: 0 };
+    next[dateKey][pillarId] = { ...existing, ...patch };
+    saveEntries(next);
+  };
+
+  const addMeal = (name) => {
+    if (!name.trim()) return;
+    const { score } = scoreMeal(name);
+    const meal = {
+      id: `m_${Date.now()}`,
+      time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
+      name: name.trim(), score, manualScore: null,
+    };
+    const next = { ...meals, [dateKey]: [...dayMeals, meal] };
+    saveMeals(next);
+  };
+  const updateMeal = (id, patch) => {
+    const next = { ...meals, [dateKey]: dayMeals.map(m => m.id === id ? { ...m, ...patch } : m) };
+    saveMeals(next);
+  };
+  const deleteMeal = (id) => {
+    const filtered = dayMeals.filter(m => m.id !== id);
+    const next = { ...meals };
+    if (filtered.length) next[dateKey] = filtered; else delete next[dateKey];
+    saveMeals(next);
+  };
+
+  const dayMealAvg = useMemo(() => {
+    if (!dayMeals.length) return null;
+    const total = dayMeals.reduce((s, m) => s + (m.manualScore ?? m.score), 0);
+    return total / dayMeals.length;
+  }, [dayMeals]);
+
+  // ============ Export / Import ============
+  const exportData = () => {
+    const payload = {
+      app: 'SixPillars',
+      version: 2,
+      exportedAt: new Date().toISOString(),
+      pillars, entries, meals,
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `six-pillars-backup-${fmt(new Date())}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('Backup downloaded');
+  };
+
+  const importData = async (file) => {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      if (data.app !== 'SixPillars') {
+        showToast('Not a Six Pillars backup file');
+        return;
+      }
+      // Merge strategy: imported data overrides existing where keys match
+      const mergedEntries = { ...entries, ...(data.entries || {}) };
+      const mergedMeals = { ...meals, ...(data.meals || {}) };
+      const importedPillars = mergePillars(data.pillars || []);
+      savePillars(importedPillars);
+      saveEntries(mergedEntries);
+      saveMeals(mergedMeals);
+      showToast('Backup restored');
+    } catch (e) {
+      showToast('Import failed — invalid file');
+    }
+  };
+
+  const computeStreak = (pillarId) => {
+    let streak = 0;
+    let d = new Date(today);
+    const todayKey = fmt(today);
+    const todayDone = entries[todayKey]?.[pillarId]?.done === true;
+    if (!todayDone) d = addDays(d, -1);
+    while (true) {
+      const k = fmt(d);
+      if (entries[k]?.[pillarId]?.done === true) { streak++; d = addDays(d, -1); }
+      else break;
+      if (streak > 999) break;
+    }
+    if (todayDone) streak++;
+    return streak;
+  };
+
+  const monthlyConsistency = useMemo(() => {
+    const year = today.getFullYear(); const month = today.getMonth();
+    const dayOfMonth = today.getDate();
+    const result = {};
+    pillars.forEach(p => {
+      let done = 0; let totalMinutes = 0;
+      for (let i = 1; i <= dayOfMonth; i++) {
+        const k = fmt(new Date(year, month, i));
+        const e = entries[k]?.[p.id];
+        if (e?.done === true) done++;
+        if (e?.minutes) totalMinutes += e.minutes;
+      }
+      result[p.id] = { done, total: dayOfMonth, totalMinutes };
+    });
+    return result;
+  }, [entries, pillars, today]);
+
+  const last30 = useMemo(() => {
+    const arr = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = addDays(today, -i);
+      const k = fmt(d);
+      const dayEntry = entries[k] || {};
+      const doneCount = pillars.filter(p => dayEntry[p.id]?.done === true).length;
+      arr.push({ date: d, key: k, doneCount, total: pillars.length });
+    }
+    return arr;
+  }, [entries, pillars, today]);
+
+  if (loading) return <div style={styles.loading}>Loading your tracker…</div>;
+
+  return (
+    <div style={styles.app}>
+      
+      <Header today={today} selectedDate={selectedDate} setSelectedDate={setSelectedDate} view={view} />
+      <main style={styles.main} className="sp-container sp-main">
+        {view === 'today' && (
+          <TodayView
+            pillars={pillars} dayData={dayData} dayMeals={dayMeals} dayMealAvg={dayMealAvg}
+            togglePillar={togglePillar} updateField={updateField}
+            computeStreak={computeStreak} selectedDate={selectedDate} today={today}
+            setSelectedDate={setSelectedDate}
+            noteEditor={noteEditor} setNoteEditor={setNoteEditor}
+            timeEditor={timeEditor} setTimeEditor={setTimeEditor}
+            setMealModalOpen={setMealModalOpen}
+          />
+        )}
+        {view === 'trends'   && <TrendsView pillars={pillars} monthlyConsistency={monthlyConsistency} last30={last30} computeStreak={computeStreak} meals={meals} today={today} />}
+        {view === 'calendar' && <CalendarView pillars={pillars} entries={entries} selectedDate={selectedDate} setSelectedDate={setSelectedDate} setView={setView} today={today} />}
+        {view === 'settings' && <SettingsView pillars={pillars} savePillars={savePillars} exportData={exportData} importData={importData} />}
+      </main>
+      <BottomNav view={view} setView={setView} />
+      {mealModalOpen && (
+        <MealModal
+          dayMeals={dayMeals} dayMealAvg={dayMealAvg}
+          onAdd={addMeal} onUpdate={updateMeal} onDelete={deleteMeal}
+          onClose={() => setMealModalOpen(false)}
+          isToday={sameDay(today, selectedDate)}
+          dateLabel={selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' })}
+        />
+      )}
+      {toast && <div style={styles.toast} className="toast-in">{toast}</div>}
+    </div>
+  );
+}
+
+function Header({ today, selectedDate, setSelectedDate, view }) {
+  const isToday = sameDay(today, selectedDate);
+  const dayLabel = selectedDate.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+  return (
+    <header style={styles.header}>
+      <div style={styles.headerInner} className="sp-container sp-header-pad">
+        <div style={styles.brand}>
+          <span style={styles.brandMark}>◆</span>
+          <span style={styles.brandText}>Six Pillars</span>
+        </div>
+        {view === 'today' && (
+          <div style={styles.dateNav}>
+            <button style={styles.navBtn} onClick={() => setSelectedDate(addDays(selectedDate, -1))}><ChevronLeft size={18} /></button>
+            <div style={styles.dateLabel}>
+              <div style={styles.dayName}>{isToday ? 'Today' : dayLabel.split(',')[0]}</div>
+              <div style={styles.dayDate}>{dayLabel.split(',').slice(1).join(',').trim()}</div>
+            </div>
+            <button style={{ ...styles.navBtn, opacity: isToday ? 0.3 : 1 }} onClick={() => !isToday && setSelectedDate(addDays(selectedDate, 1))} disabled={isToday}><ChevronRight size={18} /></button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+}
+
+function TodayView({ pillars, dayData, dayMeals, dayMealAvg, togglePillar, updateField, computeStreak, selectedDate, today, setSelectedDate, noteEditor, setNoteEditor, timeEditor, setTimeEditor, setMealModalOpen }) {
+  const isToday = sameDay(today, selectedDate);
+  // Use day comparison, not timestamp comparison — this is the bugfix
+  const isFuture = dayCompare(selectedDate, today) > 0;
+  const completed = pillars.filter(p => dayData[p.id]?.done === true).length;
+  const pct = pillars.length > 0 ? Math.round((completed / pillars.length) * 100) : 0;
+
+  return (
+    <div className="fade-in">
+      <div style={styles.summaryCard} className="sp-summary-card">
+        <div>
+          <div style={styles.summaryLabel}>{isFuture ? 'Future date' : isToday ? 'Today' : 'That day'}</div>
+          <div style={styles.summaryNum} className="sp-summary-num">{completed}<span style={styles.summaryTotal}>/{pillars.length}</span></div>
+          <div style={styles.summarySub}>{pct}% complete</div>
+        </div>
+        <RingProgress pct={pct} />
+      </div>
+
+      <div style={{ ...styles.pillarList, display: undefined }} className="sp-pillar-list">
+        {pillars.map((p, i) => {
+          const entry = dayData[p.id];
+          const done = entry?.done === true;
+          const skipped = entry?.done === false;
+          const note = entry?.note || '';
+          const minutes = entry?.minutes || 0;
+          const streak = computeStreak(p.id);
+          const editingNote = noteEditor === p.id;
+          const editingTime = timeEditor === p.id;
+          const isMeal = p.isMealPillar;
+
+          return (
+            <div key={p.id} style={{ ...styles.pillarCard, animationDelay: `${i * 40}ms` }} className="slide-in">
+              <button
+                style={{
+                  ...styles.pillarMain,
+                  background: done ? `linear-gradient(135deg, ${p.color}15, ${p.color}05)` : 'transparent',
+                  borderColor: done ? p.color : 'transparent',
+                  cursor: isFuture ? 'not-allowed' : 'pointer',
+                }}
+                onClick={() => !isFuture && togglePillar(p.id)}
+                disabled={isFuture}
+              >
+                <div style={styles.pillarLeft}>
+                  <div style={{ ...styles.pillarEmoji, background: `${p.color}20` }}>{p.emoji}</div>
+                  <div style={styles.pillarInfo}>
+                    <div style={styles.pillarName}>{p.name}</div>
+                    <div style={styles.pillarMeta}>
+                      {streak > 0 && <span style={styles.metaItem}><Flame size={11} color="#FF6B4A" />{streak}d</span>}
+                      {minutes > 0 && <span style={styles.metaItem}><Clock size={11} color="#8B7E6B" />{fmtMinutes(minutes)}</span>}
+                      {isMeal && dayMeals.length > 0 && (
+                        <span style={styles.metaItem}>
+                          <Utensils size={11} color="#8B7E6B" />{dayMeals.length}
+                          {dayMealAvg && <StarMini value={dayMealAvg} />}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div style={styles.pillarStatus}>
+                  {done && <div style={{ ...styles.statusBadge, background: p.color }}><Check size={16} strokeWidth={3} color="#fff" /></div>}
+                  {skipped && <div style={{ ...styles.statusBadge, background: '#E8E5DD', border: '1px dashed #B8B0A0' }}><X size={16} strokeWidth={2.5} color="#8B7E6B" /></div>}
+                  {!done && !skipped && <div style={styles.statusEmpty} />}
+                </div>
+              </button>
+
+              {!isFuture && (
+                <div style={styles.actionRow}>
+                  {p.tracksTime && (
+                    editingTime ? (
+                      <TimeEditor
+                        minutes={minutes}
+                        onChange={(newMinutes) => updateField(p.id, { minutes: newMinutes })}
+                        onClose={() => setTimeEditor(null)}
+                      />
+                    ) : (
+                      <button onClick={() => setTimeEditor(p.id)} style={styles.chipBtn}>
+                        <Clock size={11} />{minutes ? fmtMinutes(minutes) : 'Add time'}
+                      </button>
+                    )
+                  )}
+
+                  {isMeal && (
+                    <button onClick={() => setMealModalOpen(true)} style={{ ...styles.chipBtn, ...styles.chipPrimary }}>
+                      <Utensils size={11} />{dayMeals.length ? `${dayMeals.length} meal${dayMeals.length > 1 ? 's' : ''}` : 'Log a meal'}
+                    </button>
+                  )}
+
+                  {editingNote ? (
+                    <input
+                      autoFocus type="text" value={note} placeholder="Quick note…"
+                      onChange={(e) => updateField(p.id, { note: e.target.value })}
+                      onBlur={() => setNoteEditor(null)}
+                      onKeyDown={(e) => e.key === 'Enter' && setNoteEditor(null)}
+                      style={styles.noteInput}
+                    />
+                  ) : note ? (
+                    <button onClick={() => setNoteEditor(p.id)} style={styles.chipBtnNote}>
+                      <Edit3 size={11} />{note}
+                    </button>
+                  ) : (
+                    <button onClick={() => setNoteEditor(p.id)} style={styles.chipBtn}>
+                      <Plus size={11} />Note
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {!isToday && <button style={styles.jumpToday} onClick={() => setSelectedDate(startOfDay(new Date()))}>Jump to today</button>}
+    </div>
+  );
+}
+
+function TimeEditor({ minutes, onChange, onClose }) {
+  const initialH = Math.floor((minutes || 0) / 60);
+  const initialM = (minutes || 0) % 60;
+  const [h, setH] = useState(initialH);
+  const [m, setM] = useState(initialM);
+  const wrapRef = useRef(null);
+
+  const commit = (nextH, nextM) => {
+    const clampedH = Math.max(0, Math.min(23, nextH || 0));
+    const clampedM = Math.max(0, Math.min(59, nextM || 0));
+    onChange(clampedH * 60 + clampedM);
+  };
+
+  // Close when tapping outside the editor
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) onClose();
+    };
+    document.addEventListener('mousedown', handleClick);
+    document.addEventListener('touchstart', handleClick);
+    return () => {
+      document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('touchstart', handleClick);
+    };
+  }, [onClose]);
+
+  return (
+    <div ref={wrapRef} style={styles.timeEditWrap}>
+      <Clock size={12} color="#8B7E6B" />
+      <input
+        autoFocus type="number" min="0" max="23" inputMode="numeric"
+        value={h || ''} placeholder="0"
+        onChange={(e) => { const v = parseInt(e.target.value) || 0; setH(v); commit(v, m); }}
+        onKeyDown={(e) => e.key === 'Enter' && onClose()}
+        style={styles.timeInput}
+      />
+      <span style={styles.timeUnit}>h</span>
+      <input
+        type="number" min="0" max="59" inputMode="numeric"
+        value={m || ''} placeholder="0"
+        onChange={(e) => { const v = parseInt(e.target.value) || 0; setM(v); commit(h, v); }}
+        onKeyDown={(e) => e.key === 'Enter' && onClose()}
+        style={styles.timeInput}
+      />
+      <span style={styles.timeUnit}>m</span>
+    </div>
+  );
+}
+
+function MealModal({ dayMeals, dayMealAvg, onAdd, onUpdate, onDelete, onClose, isToday, dateLabel }) {
+  const [input, setInput] = useState('');
+  const [preview, setPreview] = useState(null);
+  const [editingId, setEditingId] = useState(null);
+
+  useEffect(() => {
+    if (input.trim().length > 1) setPreview(scoreMeal(input));
+    else setPreview(null);
+  }, [input]);
+
+  const submit = () => {
+    if (!input.trim()) return;
+    onAdd(input.trim());
+    setInput(''); setPreview(null);
+  };
+
+  return (
+    <div style={styles.modalOverlay} className="sp-modal-overlay" onClick={onClose}>
+      <div style={styles.modalSheet} className="sp-modal-sheet slide-up" onClick={e => e.stopPropagation()}>
+        <div style={styles.modalHandle} />
+        <div style={styles.modalHeader}>
+          <div>
+            <div style={styles.modalTitle}>Meals</div>
+            <div style={styles.modalSubtitle}>{isToday ? 'Today' : dateLabel}</div>
+          </div>
+          {dayMealAvg !== null && (
+            <div style={styles.dayAvgPill}>
+              <span style={styles.dayAvgNum}>{dayMealAvg.toFixed(1)}</span>
+              <Star size={12} fill="#F7F2E7" color="#F7F2E7" style={{ marginLeft: 4 }} />
+            </div>
+          )}
+        </div>
+
+        <div style={styles.mealAddBox}>
+          <input
+            type="text" value={input}
+            placeholder="What did you eat? e.g. grilled chicken salad"
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && submit()}
+            style={styles.mealInput}
+          />
+          <button onClick={submit} style={styles.mealAddBtn} disabled={!input.trim()}>Add</button>
+        </div>
+
+        {preview && (
+          <div style={styles.previewBox}>
+            <div style={styles.previewHeader}>
+              <span style={styles.previewLabel}>Estimated score</span>
+              <StarRow value={preview.score} size={14} />
+            </div>
+            {preview.reasons.length > 0 ? (
+              <div style={styles.reasonsRow}>
+                {preview.reasons.slice(0, 4).map((r, i) => (
+                  <span key={i} style={{
+                    ...styles.reasonChip,
+                    background: r.points > 0 ? '#3D8B7A20' : '#D4604F20',
+                    color: r.points > 0 ? '#2A6E5E' : '#A1402F',
+                  }}>
+                    {r.points > 0 ? '+' : ''}{r.points} {r.word}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <div style={styles.reasonsEmpty}>Neutral — no flags either way</div>
+            )}
+          </div>
+        )}
+
+        <div style={styles.mealsList}>
+          {dayMeals.length === 0 ? (
+            <div style={styles.emptyMeals}>
+              <Utensils size={28} style={{ opacity: 0.3 }} />
+              <div style={{ marginTop: 12, fontSize: 13, color: '#8B7E6B' }}>No meals logged yet</div>
+              <div style={{ marginTop: 4, fontSize: 11, color: '#A89B82' }}>Add meals throughout the day</div>
+            </div>
+          ) : (
+            dayMeals.map(m => {
+              const finalScore = m.manualScore ?? m.score;
+              const isAdjusted = m.manualScore !== null && m.manualScore !== undefined;
+              return (
+                <div key={m.id} style={styles.mealRow}>
+                  <div style={styles.mealMain}>
+                    <div style={styles.mealTime}>{m.time}</div>
+                    <div style={styles.mealName}>{m.name}</div>
+                  </div>
+                  <div style={styles.mealRight}>
+                    {editingId === m.id ? (
+                      <div style={styles.starPicker}>
+                        {[1, 2, 3, 4, 5].map(n => (
+                          <button key={n} onClick={() => { onUpdate(m.id, { manualScore: n }); setEditingId(null); }} style={styles.starBtn}>
+                            <Star size={16} fill={n <= finalScore ? '#1F1B14' : 'transparent'} color="#1F1B14" />
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <button onClick={() => setEditingId(m.id)} style={styles.scoreBtn}>
+                        <StarRow value={finalScore} size={12} />
+                        {isAdjusted && <span style={styles.adjustedDot} title="Manually adjusted" />}
+                      </button>
+                    )}
+                    <button onClick={() => onDelete(m.id)} style={styles.deleteBtn}><Trash2 size={12} /></button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        <div style={styles.modalFooter}>
+          <div style={styles.disclaimerBox}>
+            Scores are auto-estimated from keywords. Tap any meal's stars to override.
+          </div>
+          <button onClick={onClose} style={styles.modalCloseBtn}>Done</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StarRow({ value, size = 14 }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      {[1, 2, 3, 4, 5].map(n => {
+        const filled = value >= n;
+        const half = !filled && value >= n - 0.5;
+        return (
+          <span key={n} style={{ position: 'relative', display: 'inline-flex' }}>
+            <Star size={size} fill={filled ? '#1F1B14' : 'transparent'} color="#1F1B14" strokeWidth={1.5} />
+            {half && (
+              <span style={{ position: 'absolute', left: 0, top: 0, width: '50%', overflow: 'hidden', display: 'inline-flex' }}>
+                <Star size={size} fill="#1F1B14" color="#1F1B14" strokeWidth={1.5} />
+              </span>
+            )}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+function StarMini({ value }) {
+  return <span style={{ fontSize: 10, fontWeight: 600, color: '#5C5240', marginLeft: 2 }}>{value.toFixed(1)}★</span>;
+}
+
+function RingProgress({ pct }) {
+  const r = 28; const c = 2 * Math.PI * r; const dash = (pct / 100) * c;
+  return (
+    <svg width="72" height="72" style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx="36" cy="36" r={r} fill="none" stroke="#E8E2D4" strokeWidth="6" />
+      <circle cx="36" cy="36" r={r} fill="none" stroke="#1F1B14" strokeWidth="6" strokeLinecap="round" strokeDasharray={`${dash} ${c}`} style={{ transition: 'stroke-dasharray 0.6s cubic-bezier(.4,.0,.2,1)' }} />
+    </svg>
+  );
+}
+
+function TrendsView({ pillars, monthlyConsistency, last30, computeStreak, meals, today }) {
+  const totalPossible = last30.length * pillars.length;
+  const totalDone = last30.reduce((s, d) => s + d.doneCount, 0);
+  const overall = totalPossible ? Math.round((totalDone / totalPossible) * 100) : 0;
+
+  const mealStats = useMemo(() => {
+    const year = today.getFullYear(); const month = today.getMonth();
+    const dayOfMonth = today.getDate();
+    let totalMeals = 0; let totalScore = 0; let daysLogged = 0;
+    for (let i = 1; i <= dayOfMonth; i++) {
+      const k = fmt(new Date(year, month, i));
+      const dayMs = meals[k] || [];
+      if (dayMs.length) {
+        daysLogged++;
+        dayMs.forEach(m => { totalMeals++; totalScore += (m.manualScore ?? m.score); });
+      }
+    }
+    return { totalMeals, avgScore: totalMeals ? totalScore / totalMeals : null, daysLogged };
+  }, [meals, today]);
+
+  return (
+    <div className="fade-in">
+      <div style={styles.sectionTitle}>Last 30 days</div>
+      <div style={styles.bigStatCard}>
+        <div style={styles.bigStatLabel}>Overall consistency</div>
+        <div style={styles.bigStatNum} className="sp-big-stat-num">{overall}<span style={styles.bigStatPct}>%</span></div>
+        <Sparkline data={last30} pillars={pillars} />
+      </div>
+
+      {mealStats.totalMeals > 0 && (
+        <>
+          <div style={styles.sectionTitle}>Meals this month</div>
+          <div style={styles.mealStatsCard}>
+            <div style={styles.mealStatItem}>
+              <div style={styles.mealStatValue}>{mealStats.totalMeals}</div>
+              <div style={styles.mealStatLabel}>logged</div>
+            </div>
+            <div style={styles.mealStatDivider} />
+            <div style={styles.mealStatItem}>
+              <div style={styles.mealStatValue}>
+                {mealStats.avgScore.toFixed(1)}
+                <Star size={14} fill="#F7F2E7" color="#F7F2E7" style={{ marginLeft: 3, marginBottom: 3 }} />
+              </div>
+              <div style={styles.mealStatLabel}>avg quality</div>
+            </div>
+            <div style={styles.mealStatDivider} />
+            <div style={styles.mealStatItem}>
+              <div style={styles.mealStatValue}>{mealStats.daysLogged}</div>
+              <div style={styles.mealStatLabel}>days tracked</div>
+            </div>
+          </div>
+        </>
+      )}
+
+      <div style={styles.sectionTitle}>This month by pillar</div>
+      <div style={styles.pillarStats}>
+        {pillars.map(p => {
+          const c = monthlyConsistency[p.id];
+          const pct = c.total ? Math.round((c.done / c.total) * 100) : 0;
+          const streak = computeStreak(p.id);
+          return (
+            <div key={p.id} style={styles.statCard}>
+              <div style={styles.statHeader}>
+                <div style={styles.statTitle}>
+                  <span style={{ ...styles.statEmoji, background: `${p.color}20` }}>{p.emoji}</span>
+                  <span>{p.name}</span>
+                </div>
+                <div style={styles.statPctBig}>{pct}%</div>
+              </div>
+              <div style={styles.statBar}>
+                <div style={{ ...styles.statBarFill, width: `${pct}%`, background: p.color }} />
+              </div>
+              <div style={styles.statFooter}>
+                <span>{c.done} of {c.total} days</span>
+                <div style={{ display: 'flex', gap: 10 }}>
+                  {p.tracksTime && c.totalMinutes > 0 && (
+                    <span style={styles.statTime}><Clock size={10} />{fmtMinutes(c.totalMinutes)}</span>
+                  )}
+                  {streak > 0 && <span style={styles.statStreak}><Flame size={11} /> {streak}</span>}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Sparkline({ data, pillars }) {
+  const max = pillars.length;
+  const w = 280, h = 60, pad = 4;
+  const stepX = (w - pad * 2) / (data.length - 1);
+  const points = data.map((d, i) => {
+    const x = pad + i * stepX;
+    const y = h - pad - ((d.doneCount / max) * (h - pad * 2));
+    return `${x},${y}`;
+  }).join(' ');
+  const areaPath = `M${pad},${h - pad} L${points.replace(/ /g, ' L')} L${w - pad},${h - pad} Z`;
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} style={{ width: '100%', height: 60, marginTop: 12 }}>
+      <path d={areaPath} fill="#1F1B1410" />
+      <polyline points={points} fill="none" stroke="#1F1B14" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      {data.map((d, i) => {
+        const x = pad + i * stepX;
+        const y = h - pad - ((d.doneCount / max) * (h - pad * 2));
+        const isToday = i === data.length - 1;
+        return isToday ? <circle key={i} cx={x} cy={y} r="3" fill="#FF6B4A" /> : null;
+      })}
+    </svg>
+  );
+}
+
+function CalendarView({ pillars, entries, selectedDate, setSelectedDate, setView, today }) {
+  const [viewMonth, setViewMonth] = useState(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+  const year = viewMonth.getFullYear(); const month = viewMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthName = viewMonth.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+  const cells = [];
+  for (let i = 0; i < firstDay; i++) cells.push(null);
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d);
+  return (
+    <div className="fade-in">
+      <div style={styles.calNav}>
+        <button style={styles.navBtn} onClick={() => setViewMonth(new Date(year, month - 1, 1))}><ChevronLeft size={18} /></button>
+        <div style={styles.calMonthLabel}>{monthName}</div>
+        <button style={styles.navBtn} onClick={() => setViewMonth(new Date(year, month + 1, 1))}><ChevronRight size={18} /></button>
+      </div>
+      <div style={styles.calGrid}>
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} style={styles.calDayLabel}>{d}</div>)}
+        {cells.map((d, i) => {
+          if (d === null) return <div key={i} />;
+          const date = startOfDay(new Date(year, month, d));
+          const k = fmt(date);
+          const dayEntry = entries[k] || {};
+          const done = pillars.filter(p => dayEntry[p.id]?.done === true).length;
+          const isToday = sameDay(date, today);
+          const isFuture = dayCompare(date, today) > 0;
+          const isSelected = sameDay(date, selectedDate);
+          return (
+            <button key={i} onClick={() => { setSelectedDate(date); setView('today'); }} disabled={isFuture}
+              style={{
+                ...styles.calCell,
+                opacity: isFuture ? 0.3 : 1,
+                background: isSelected ? '#1F1B14' : 'transparent',
+                color: isSelected ? '#F7F2E7' : '#1F1B14',
+                border: isToday && !isSelected ? '1.5px solid #1F1B14' : '1.5px solid transparent',
+              }}>
+              <span style={styles.calNum}>{d}</span>
+              {!isFuture && done > 0 && (
+                <div style={styles.calDots}>
+                  {Array.from({ length: pillars.length }).map((_, idx) => (
+                    <div key={idx} style={{ ...styles.calDot, background: idx < done ? (isSelected ? '#F7F2E7' : '#1F1B14') : (isSelected ? '#F7F2E740' : '#1F1B1420') }} />
+                  ))}
+                </div>
+              )}
+            </button>
+          );
+        })}
+      </div>
+      <div style={styles.calLegend}>Tap a day to view or edit it</div>
+    </div>
+  );
+}
+
+function SettingsView({ pillars, savePillars, exportData, importData }) {
+  const [editing, setEditing] = useState(null);
+  const [newPillar, setNewPillar] = useState({ name: '', emoji: '✨', tracksTime: true });
+  const fileInputRef = useRef(null);
+
+  const updatePillar = (id, patch) => savePillars(pillars.map(p => p.id === id ? { ...p, ...patch } : p));
+  const removePillar = (id) => { if (pillars.length <= 1) return; savePillars(pillars.filter(p => p.id !== id)); };
+  const addPillar = () => {
+    if (!newPillar.name.trim()) return;
+    const colors = ['#5B6CFF', '#FF6B4A', '#8B5A3C', '#6B7FBF', '#C9A961', '#3D8B7A', '#D4604F', '#9B59B6'];
+    savePillars([...pillars, {
+      id: `custom_${Date.now()}`, name: newPillar.name.trim(),
+      emoji: newPillar.emoji || '✨', color: colors[pillars.length % colors.length],
+      tracksTime: newPillar.tracksTime,
+    }]);
+    setNewPillar({ name: '', emoji: '✨', tracksTime: true });
+  };
+
+  const handleImportClick = () => fileInputRef.current?.click();
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) importData(file);
+    e.target.value = ''; // reset so re-importing same file works
+  };
+
+  return (
+    <div className="fade-in">
+      <div style={styles.sectionTitle}>Backup & restore</div>
+      <div style={{ marginBottom: 10 }} className="sp-backup-row">
+        <button onClick={exportData} style={styles.backupBtn}>
+          <Download size={14} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <span style={styles.backupBtnLabel}>Export backup</span>
+            <span style={styles.backupBtnHint}>Download a .json file</span>
+          </div>
+        </button>
+        <button onClick={handleImportClick} style={styles.backupBtn}>
+          <Upload size={14} />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            <span style={styles.backupBtnLabel}>Import backup</span>
+            <span style={styles.backupBtnHint}>Restore from .json</span>
+          </div>
+        </button>
+        <input ref={fileInputRef} type="file" accept=".json,application/json" onChange={handleFileChange} style={{ display: 'none' }} />
+      </div>
+      <div style={styles.backupNote}>
+        Imports merge with existing data — they don't overwrite logs from other days. Same-day entries will be replaced by the imported version.
+      </div>
+
+      <div style={styles.sectionTitle}>Your pillars</div>
+      <div style={styles.settingsList}>
+        {pillars.map(p => (
+          <div key={p.id} style={styles.settingsRow}>
+            {editing === p.id ? (
+              <>
+                <input type="text" value={p.emoji} onChange={e => updatePillar(p.id, { emoji: e.target.value })} style={styles.settingsEmojiInput} maxLength={2} />
+                <input type="text" value={p.name} onChange={e => updatePillar(p.id, { name: e.target.value })} style={styles.settingsNameInput} autoFocus />
+                <button style={styles.settingsDoneBtn} onClick={() => setEditing(null)}>Done</button>
+              </>
+            ) : (
+              <>
+                <span style={{ ...styles.settingsEmoji, background: `${p.color}20` }}>{p.emoji}</span>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                  <span style={styles.settingsName}>{p.name}</span>
+                  <span style={styles.settingsHint}>
+                    {p.tracksTime ? '⏱ tracks time' : ''}{p.tracksTime && p.isMealPillar ? ' · ' : ''}{p.isMealPillar ? '🍽 meal log' : ''}
+                  </span>
+                </div>
+                <button style={styles.settingsIconBtn} onClick={() => setEditing(p.id)}><Edit3 size={14} /></button>
+                <button style={styles.settingsIconBtn} onClick={() => removePillar(p.id)} disabled={pillars.length <= 1}><Trash2 size={14} /></button>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div style={styles.sectionTitle}>Add a pillar</div>
+      <div style={styles.addRow}>
+        <input type="text" value={newPillar.emoji} onChange={e => setNewPillar({ ...newPillar, emoji: e.target.value })} style={styles.settingsEmojiInput} maxLength={2} placeholder="✨" />
+        <input type="text" value={newPillar.name} onChange={e => setNewPillar({ ...newPillar, name: e.target.value })} placeholder="e.g. Drink water" style={styles.settingsNameInput} onKeyDown={e => e.key === 'Enter' && addPillar()} />
+        <button style={styles.addBtn} onClick={addPillar}><Plus size={16} /></button>
+      </div>
+      <label style={styles.timeToggle}>
+        <input type="checkbox" checked={newPillar.tracksTime} onChange={e => setNewPillar({ ...newPillar, tracksTime: e.target.checked })} />
+        <span>Track time spent on this habit</span>
+      </label>
+
+      <div style={styles.aboutBox}>
+        <div style={styles.aboutTitle}>Six Pillars</div>
+        <div style={styles.aboutText}>
+          A digital evolution of your printed tracking sheet. Tap a pillar once to mark done, again for skipped, again to clear. Each pillar can record minutes spent and an optional note. Healthy Eating opens a meal log where each entry gets an auto 1–5 star score you can override. Export regularly to keep a permanent backup of your data.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BottomNav({ view, setView }) {
+  const items = [
+    { id: 'today', icon: CalendarIcon, label: 'Today' },
+    { id: 'trends', icon: BarChart3, label: 'Trends' },
+    { id: 'calendar', icon: CalendarIcon, label: 'Month' },
+    { id: 'settings', icon: Settings, label: 'Settings' },
+  ];
+  return (
+    <nav className="sp-bottom-nav-wrap">
+      <div style={styles.bottomNav} className="sp-bottom-nav">
+      {items.map(item => {
+        const Icon = item.icon; const active = view === item.id;
+        return (
+          <button key={item.id} onClick={() => setView(item.id)} style={{ ...styles.navItem, color: active ? '#1F1B14' : '#8B7E6B' }}>
+            <Icon size={18} strokeWidth={active ? 2.5 : 2} />
+            <span style={{ ...styles.navLabel, fontWeight: active ? 600 : 500 }}>{item.label}</span>
+            {active && <div style={styles.navIndicator} />}
+          </button>
+        );
+      })}
+      </div>
+    </nav>
+  );
+}
+
+
+const styles = {
+  loading: { display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', fontFamily: 'Inter, sans-serif', color: '#8B7E6B', background: '#F7F2E7' },
+  app: { minHeight: '100vh', background: '#F7F2E7', fontFamily: 'Inter, system-ui, sans-serif', color: '#1F1B14', paddingBottom: 88 },
+  header: { position: 'sticky', top: 0, zIndex: 10, background: '#F7F2E7', borderBottom: '1px solid #E8E2D4' },
+  headerInner: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  brand: { display: 'flex', alignItems: 'center', gap: 8 },
+  brandMark: { fontSize: 14, color: '#FF6B4A' },
+  brandText: { fontFamily: 'Fraunces, serif', fontSize: 17, fontWeight: 600, letterSpacing: '-0.01em' },
+  dateNav: { display: 'flex', alignItems: 'center', gap: 4 },
+  navBtn: { width: 32, height: 32, borderRadius: 8, border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1F1B14' },
+  dateLabel: { textAlign: 'center', minWidth: 110 },
+  dayName: { fontSize: 13, fontWeight: 600, lineHeight: 1.1 },
+  dayDate: { fontSize: 11, color: '#8B7E6B', marginTop: 1 },
+  main: {},
+  summaryCard: { background: '#1F1B14', color: '#F7F2E7', borderRadius: 20, padding: '22px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 },
+  summaryLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', opacity: 0.6, marginBottom: 6 },
+  summaryNum: { fontFamily: 'Fraunces, serif', fontSize: 44, fontWeight: 500, lineHeight: 1, letterSpacing: '-0.02em' },
+  summaryTotal: { fontSize: 22, opacity: 0.5, marginLeft: 4 },
+  summarySub: { fontSize: 12, opacity: 0.7, marginTop: 6 },
+  pillarList: {},
+  pillarCard: { background: '#FFFDF7', borderRadius: 16, overflow: 'hidden', border: '1px solid #EDE7D7' },
+  pillarMain: { width: '100%', padding: '14px 16px', background: 'transparent', border: '1.5px solid transparent', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', transition: 'all 0.25s cubic-bezier(.4,.0,.2,1)', textAlign: 'left' },
+  pillarLeft: { display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 },
+  pillarEmoji: { width: 38, height: 38, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 },
+  pillarInfo: { display: 'flex', flexDirection: 'column', gap: 4, minWidth: 0 },
+  pillarName: { fontSize: 14.5, fontWeight: 600, color: '#1F1B14' },
+  pillarMeta: { display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' },
+  metaItem: { display: 'flex', alignItems: 'center', gap: 3, fontSize: 11, color: '#8B7E6B', fontWeight: 500 },
+  pillarStatus: { display: 'flex', alignItems: 'center', flexShrink: 0 },
+  statusBadge: { width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.25s cubic-bezier(.4,.0,.2,1)' },
+  statusEmpty: { width: 28, height: 28, borderRadius: '50%', border: '1.5px solid #D8D0BC' },
+  actionRow: { display: 'flex', flexWrap: 'wrap', gap: 6, padding: '0 12px 12px' },
+  chipBtn: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#F7F2E7', border: '1px solid #E8E2D4', borderRadius: 999, fontSize: 11.5, color: '#5C5240', fontWeight: 500 },
+  chipPrimary: { background: '#1F1B14', color: '#F7F2E7', borderColor: '#1F1B14' },
+  chipBtnNote: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '5px 10px', background: '#F7F2E7', border: '1px solid transparent', borderRadius: 999, fontSize: 11.5, color: '#5C5240', fontStyle: 'italic', maxWidth: '100%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+  timeEditWrap: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', background: '#FFF', border: '1px solid #1F1B14', borderRadius: 999 },
+  timeInput: { width: 40, border: 'none', background: 'transparent', fontSize: 12, fontWeight: 600, color: '#1F1B14', outline: 'none', textAlign: 'center', padding: 0 },
+  timeUnit: { fontSize: 11, color: '#8B7E6B' },
+  noteInput: { flex: 1, minWidth: 140, padding: '6px 10px', borderRadius: 999, border: '1px solid #1F1B14', background: '#FFF', fontSize: 12, color: '#1F1B14', outline: 'none' },
+  jumpToday: { width: '100%', marginTop: 20, padding: '12px', background: 'transparent', border: '1px dashed #B8B0A0', borderRadius: 12, color: '#5C5240', fontSize: 13, fontWeight: 500 },
+  modalOverlay: {},
+  modalSheet: { display: 'flex', flexDirection: 'column' },
+  modalHandle: { width: 36, height: 4, background: '#D8D0BC', borderRadius: 2, margin: '10px auto 0' },
+  modalHeader: { padding: '14px 22px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  modalTitle: { fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 600, letterSpacing: '-0.02em' },
+  modalSubtitle: { fontSize: 12, color: '#8B7E6B', marginTop: 2 },
+  dayAvgPill: { background: '#1F1B14', color: '#F7F2E7', padding: '6px 12px', borderRadius: 999, display: 'inline-flex', alignItems: 'center' },
+  dayAvgNum: { fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 600 },
+  mealAddBox: { display: 'flex', gap: 8, padding: '0 22px 12px' },
+  mealInput: { flex: 1, padding: '12px 14px', borderRadius: 12, border: '1px solid #D8D0BC', background: '#FFFDF7', fontSize: 14, color: '#1F1B14', outline: 'none' },
+  mealAddBtn: { padding: '0 18px', borderRadius: 12, border: 'none', background: '#1F1B14', color: '#F7F2E7', fontSize: 13, fontWeight: 600 },
+  previewBox: { margin: '0 22px 14px', padding: '12px 14px', background: '#FFFDF7', borderRadius: 12, border: '1px solid #EDE7D7' },
+  previewHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
+  previewLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#8B7E6B', fontWeight: 600 },
+  reasonsRow: { display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 8 },
+  reasonChip: { fontSize: 10.5, padding: '3px 8px', borderRadius: 999, fontWeight: 500 },
+  reasonsEmpty: { fontSize: 11, color: '#A89B82', marginTop: 6, fontStyle: 'italic' },
+  mealsList: { flex: 1, overflowY: 'auto', padding: '0 22px' },
+  emptyMeals: { display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '40px 20px' },
+  mealRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0', borderBottom: '1px solid #EDE7D7' },
+  mealMain: { flex: 1, minWidth: 0 },
+  mealTime: { fontSize: 10, color: '#A89B82', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600 },
+  mealName: { fontSize: 13.5, color: '#1F1B14', marginTop: 2, lineHeight: 1.3 },
+  mealRight: { display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0, marginLeft: 8 },
+  scoreBtn: { background: 'transparent', border: 'none', padding: '4px 6px', borderRadius: 6, display: 'inline-flex', alignItems: 'center', position: 'relative' },
+  adjustedDot: { width: 5, height: 5, borderRadius: '50%', background: '#FF6B4A', marginLeft: 5 },
+  starPicker: { display: 'flex', gap: 1, background: '#FFFDF7', padding: '4px 6px', borderRadius: 8, border: '1px solid #D8D0BC' },
+  starBtn: { background: 'transparent', border: 'none', padding: 2, display: 'inline-flex' },
+  deleteBtn: { background: 'transparent', border: 'none', color: '#A89B82', padding: 4 },
+  modalFooter: { padding: '12px 22px 22px', display: 'flex', flexDirection: 'column', gap: 10, borderTop: '1px solid #E8E2D4' },
+  disclaimerBox: { fontSize: 10.5, color: '#A89B82', lineHeight: 1.4, textAlign: 'center' },
+  modalCloseBtn: { padding: '12px', borderRadius: 12, border: 'none', background: '#1F1B14', color: '#F7F2E7', fontSize: 14, fontWeight: 600 },
+  sectionTitle: { fontFamily: 'Fraunces, serif', fontSize: 13, fontWeight: 500, textTransform: 'uppercase', letterSpacing: '0.12em', color: '#8B7E6B', marginBottom: 12, marginTop: 8 },
+  bigStatCard: { background: '#FFFDF7', borderRadius: 20, padding: '24px', border: '1px solid #EDE7D7', marginBottom: 24 },
+  bigStatLabel: { fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#8B7E6B' },
+  bigStatNum: { fontFamily: 'Fraunces, serif', fontSize: 56, fontWeight: 500, lineHeight: 1, letterSpacing: '-0.03em', marginTop: 8 },
+  bigStatPct: { fontSize: 26, color: '#8B7E6B', marginLeft: 4 },
+  mealStatsCard: { background: '#1F1B14', color: '#F7F2E7', borderRadius: 16, padding: '18px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-around', marginBottom: 24 },
+  mealStatItem: { textAlign: 'center', flex: 1 },
+  mealStatValue: { fontFamily: 'Fraunces, serif', fontSize: 26, fontWeight: 500, letterSpacing: '-0.02em', display: 'inline-flex', alignItems: 'flex-end' },
+  mealStatLabel: { fontSize: 10.5, opacity: 0.65, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 },
+  mealStatDivider: { width: 1, height: 30, background: '#F7F2E730' },
+  pillarStats: { display: 'flex', flexDirection: 'column', gap: 10 },
+  statCard: { background: '#FFFDF7', borderRadius: 14, padding: '14px 16px', border: '1px solid #EDE7D7' },
+  statHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
+  statTitle: { display: 'flex', alignItems: 'center', gap: 10, fontSize: 13.5, fontWeight: 600 },
+  statEmoji: { width: 28, height: 28, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 14 },
+  statPctBig: { fontFamily: 'Fraunces, serif', fontSize: 22, fontWeight: 500, letterSpacing: '-0.02em' },
+  statBar: { height: 6, background: '#F0EAD9', borderRadius: 3, overflow: 'hidden' },
+  statBarFill: { height: '100%', borderRadius: 3, transition: 'width 0.6s cubic-bezier(.4,.0,.2,1)' },
+  statFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 11, color: '#8B7E6B', marginTop: 8 },
+  statTime: { display: 'flex', alignItems: 'center', gap: 3, color: '#5C5240', fontWeight: 600 },
+  statStreak: { display: 'flex', alignItems: 'center', gap: 3, color: '#FF6B4A', fontWeight: 600 },
+  calNav: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, padding: '0 4px' },
+  calMonthLabel: { fontFamily: 'Fraunces, serif', fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em' },
+  calGrid: { display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, padding: 8, background: '#FFFDF7', borderRadius: 16, border: '1px solid #EDE7D7' },
+  calDayLabel: { textAlign: 'center', fontSize: 10, fontWeight: 600, color: '#A89B82', textTransform: 'uppercase', letterSpacing: '0.1em', padding: '6px 0' },
+  calCell: { aspectRatio: '1', borderRadius: 10, padding: 4, background: 'transparent', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, transition: 'all 0.2s' },
+  calNum: { fontSize: 13, fontWeight: 500, fontFamily: 'Fraunces, serif' },
+  calDots: { display: 'flex', gap: 2 },
+  calDot: { width: 4, height: 4, borderRadius: '50%' },
+  calLegend: { textAlign: 'center', fontSize: 11, color: '#A89B82', marginTop: 14 },
+
+  // Backup section
+  backupRow: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 10 },
+  backupBtn: { width: '100%', padding: '12px 14px', borderRadius: 12, border: '1px solid #EDE7D7', background: '#FFFDF7', display: 'flex', alignItems: 'center', gap: 12, color: '#1F1B14', textAlign: 'left' },
+  backupBtnLabel: { fontSize: 13.5, fontWeight: 600 },
+  backupBtnHint: { fontSize: 11, color: '#8B7E6B', marginTop: 2 },
+  backupNote: { fontSize: 11, color: '#A89B82', lineHeight: 1.5, marginBottom: 24, padding: '0 4px' },
+
+  settingsList: { display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 24 },
+  settingsRow: { background: '#FFFDF7', borderRadius: 12, padding: '10px 12px', border: '1px solid #EDE7D7', display: 'flex', alignItems: 'center', gap: 10 },
+  settingsEmoji: { width: 32, height: 32, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, flexShrink: 0 },
+  settingsEmojiInput: { width: 40, height: 32, borderRadius: 8, border: '1px solid #D8D0BC', background: '#F7F2E7', textAlign: 'center', fontSize: 16, outline: 'none', flexShrink: 0 },
+  settingsName: { fontSize: 14, fontWeight: 500 },
+  settingsHint: { fontSize: 10.5, color: '#A89B82', marginTop: 2 },
+  settingsNameInput: { flex: 1, padding: '6px 10px', borderRadius: 8, border: '1px solid #D8D0BC', background: '#F7F2E7', fontSize: 14, outline: 'none' },
+  settingsIconBtn: { width: 28, height: 28, borderRadius: 6, border: 'none', background: 'transparent', color: '#8B7E6B', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  settingsDoneBtn: { padding: '6px 12px', borderRadius: 8, border: 'none', background: '#1F1B14', color: '#F7F2E7', fontSize: 12, fontWeight: 600 },
+  addRow: { display: 'flex', gap: 8, marginBottom: 10 },
+  addBtn: { width: 40, height: 36, borderRadius: 8, border: 'none', background: '#1F1B14', color: '#F7F2E7', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+  timeToggle: { display: 'flex', alignItems: 'center', gap: 8, padding: '8px 4px', fontSize: 12.5, color: '#5C5240', marginBottom: 24 },
+  aboutBox: { background: '#1F1B14', color: '#F7F2E7', padding: '20px 22px', borderRadius: 16, marginTop: 16 },
+  aboutTitle: { fontFamily: 'Fraunces, serif', fontSize: 16, fontWeight: 600, marginBottom: 8, letterSpacing: '-0.01em' },
+  aboutText: { fontSize: 12.5, lineHeight: 1.55, opacity: 0.75 },
+  bottomNav: {},
+  navItem: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '6px 4px', background: 'transparent', border: 'none', position: 'relative', transition: 'color 0.2s' },
+  navLabel: { fontSize: 10.5, letterSpacing: '0.02em' },
+  navIndicator: { position: 'absolute', top: 0, width: 16, height: 2, borderRadius: 1, background: '#FF6B4A' },
+
+  toast: { position: 'fixed', bottom: 100, left: '50%', transform: 'translateX(-50%)', background: '#1F1B14', color: '#F7F2E7', padding: '10px 18px', borderRadius: 999, fontSize: 13, fontWeight: 500, zIndex: 100, boxShadow: '0 6px 20px #1F1B1430' },
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<HabitTracker />);
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+  </script>
+</body>
+</html>
