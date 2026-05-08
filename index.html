@@ -111,15 +111,12 @@
 const { useState, useEffect, useMemo, useRef } = React;
 
 
-// localStorage adapter
 const safeGet = (key) => {
   try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : null; } catch { return null; }
 };
 const safeSet = (key, value) => {
   try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { return false; }
 };
-
-// Inline SVG icons
 const Icon = ({ children, size = 16, color = 'currentColor', strokeWidth = 2, fill = 'none', style = {} }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" style={style}>{children}</svg>
 );
@@ -142,7 +139,6 @@ const Upload = (p) => <Icon {...p}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2
 const Sparkles = (p) => <Icon {...p}><path d="M12 3l1.88 5.76L20 10l-6.12 1.24L12 17l-1.88-5.76L4 10l6.12-1.24z" /><path d="M5 3l.94 2.88L9 7l-3.06.12L5 10l-.94-2.88L1 7l3.06-.12z" /><path d="M19 13l.94 2.88L23 17l-3.06.12L19 20l-.94-2.88L15 17l3.06-.12z" /></Icon>;
 const RefreshCw = (p) => <Icon {...p}><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" /></Icon>;
 
-
 // ============ Storage ============
 // IMPORTANT: keep these keys stable across versions to never lose data.
 const STORAGE = {
@@ -163,30 +159,72 @@ const DEFAULT_PILLARS = [
 
 // ============ Meal scoring ============
 const MEAL_RULES = {
-  veggies:    { points: +1.5, words: ['salad','vegetable','veggie','spinach','kale','broccoli','carrot','cucumber','lettuce','tomato','pepper','courgette','aubergine','cabbage','cauliflower','greens'] },
-  fruit:      { points: +1.0, words: ['apple','banana','berry','berries','orange','grape','melon','pear','peach','mango','pineapple','fruit'] },
-  leanProtein:{ points: +1.0, words: ['chicken breast','grilled chicken','turkey','fish','salmon','tuna','cod','tofu','beans','lentil','chickpea','egg','eggs'] },
-  wholegrain: { points: +0.8, words: ['oats','oatmeal','porridge','brown rice','quinoa','wholemeal','whole wheat','wholewheat','wholegrain'] },
-  homemade:   { points: +0.5, words: ['homemade','home cooked','home-cooked','cooked at home'] },
-  water:      { points: +0.3, words: ['water','green tea','herbal tea'] },
-  nuts:       { points: +0.5, words: ['nuts','almond','walnut','cashew','peanut'] },
-  fried:      { points: -1.5, words: ['fried','deep fried','deep-fried','crispy fried','fry-up'] },
-  fastFood:   { points: -2.0, words: ['mcdonald','kfc','burger king','dominos','pizza hut','nandos','five guys','subway','takeaway','take away','take-away','fast food'] },
-  sugary:     { points: -1.5, words: ['cake','biscuit','cookie','chocolate','ice cream','candy','sweets','donut','doughnut','pastry','muffin','sugar','syrup','frosting'] },
-  fizzyDrink: { points: -1.5, words: ['coke','pepsi','fanta','sprite','soda','fizzy','energy drink','red bull','monster'] },
-  alcohol:    { points: -1.5, words: ['beer','wine','vodka','whisky','whiskey','rum','gin','cocktail','alcohol','lager','ale'] },
-  processed:  { points: -1.0, words: ['sausage','bacon','hot dog','nugget','crisps','chips','fries','instant noodle','pot noodle','ready meal'] },
-  refined:    { points: -0.5, words: ['white bread','white rice','white pasta','baguette'] },
-  heavyCream: { points: -0.8, words: ['creamy','cream sauce','mayo','mayonnaise','heavy cream','butter sauce'] },
+  // ============ VEGETABLES & SALADS ============
+  veggies: { points: +1.5, words: ['salad','vegetable','veggie','spinach','kale','broccoli','carrot','cucumber','lettuce','tomato','pepper','courgette','aubergine','cabbage','cauliflower','greens','celery','asparagus','artichoke','beetroot','radish','watercress','rocket','mixed leaves','sweet pepper','spring onion','leek','fennel','bok choy','pak choi','mange tout','sugar snap','edamame','sweetcorn','corn on the cob','roasted veg','stir fry veg','vegetable stew','mixed vegetables'] },
+  sweetPotato: { points: +1.2, words: ['sweet potato','sweet potatoes','roasted sweet potato','mashed sweet potato','baked sweet potato'] },
+  mushrooms: { points: +0.8, words: ['mushroom','mushrooms','portobello','chestnut mushroom','oyster mushroom'] },
+  avocado: { points: +1.0, words: ['avocado','avocados','guacamole'] },
 
-  // ---- Nigerian foods ----
-  nigerianVegSoups:  { points: +1.5, words: ['okro soup','okoro soup','okra soup','efo riro','efo','bitterleaf soup','ofe onugbu','vegetable soup','edikang ikong','afang soup','afang','ogbono','egusi soup','egusi'] },
-  nigerianProtein:   { points: +1.0, words: ['moi moi','moimoi','bean cake','grilled suya','suya','fish pepper soup','chicken pepper soup','pepper soup','catfish soup','ofe akwu','banga soup'] },
-  nigerianHealthy:   { points: +0.8, words: ['ukwa','abacha','african salad','tigernuts','garden egg','garden egg stew','zobo','kunu','fura da nono'] },
-  nigerianStarchy:   { points:  0.0, words: ['eba','garri','fufu','pounded yam','amala','semovita','semo','wheat meal','tuwo','tuwo shinkafa','oat eba'] },
-  nigerianRice:      { points:  0.0, words: ['jollof rice','jollof','native jollof','ofada rice','ofada','coconut rice'] },
-  nigerianFried:     { points: -1.0, words: ['fried plantain','dodo','puff puff','akara','buns','chin chin','fried yam'] },
-  nigerianProcessed: { points: -1.2, words: ['indomie','gala','sausage roll','meat pie','roasted plantain chips'] },
+  // ============ FRUITS ============
+  fruit: { points: +1.0, words: ['apple','banana','berry','berries','strawberry','blueberry','raspberry','blackberry','orange','grape','melon','watermelon','pear','peach','mango','pineapple','fruit','kiwi','pomegranate','papaya','pawpaw','passion fruit','lychee','cherry','plum','apricot','nectarine','grapefruit','clementine','tangerine','fig','dates','dried fruit','fruit salad','mixed fruit'] },
+
+  // ============ LEAN PROTEIN ============
+  leanProtein: { points: +1.0, words: ['chicken breast','grilled chicken','turkey','fish','salmon','tuna','cod','tilapia','mackerel','sardine','herring','trout','sea bass','sea bream','haddock','pollock','prawns','shrimp','crab','lobster','tofu','tempeh','beans','lentil','chickpea','black bean','kidney bean','butter bean','edamame','egg','eggs','boiled egg','scrambled egg','poached egg','omelette','egg white','lean beef','lean mince','venison','rabbit','quorn','soy protein'] },
+
+  // ============ DAIRY & HEALTHY FATS ============
+  healthyDairy: { points: +0.6, words: ['greek yoghurt','greek yogurt','natural yoghurt','plain yoghurt','low fat yoghurt','cottage cheese','skyr'] },
+  healthyFats: { points: +0.5, words: ['nuts','almond','walnut','cashew','peanut','pistachio','pecan','brazil nut','nut butter','almond butter','peanut butter','seeds','chia seeds','flaxseed','sunflower seeds','pumpkin seeds','hemp seeds','olive oil','avocado oil'] },
+
+  // ============ WHOLEGRAINS ============
+  wholegrain: { points: +0.8, words: ['oats','oatmeal','porridge','brown rice','quinoa','wholemeal','whole wheat','wholewheat','wholegrain','whole grain','barley','bulgur','buckwheat','millet','spelt','rye','rye bread','wholemeal bread','wholemeal pasta','brown pasta','wild rice','freekeh'] },
+
+  // ============ SOUPS & STEWS (HEALTHY) ============
+  healthySoups: { points: +0.8, words: ['vegetable soup','lentil soup','tomato soup','minestrone','broth','bone broth','chicken soup','pea soup','bean soup','leek soup','butternut soup','pumpkin soup','gazpacho','miso soup'] },
+
+  // ============ HOMEMADE / WATER ============
+  homemade: { points: +0.5, words: ['homemade','home cooked','home-cooked','cooked at home','made from scratch'] },
+  water: { points: +0.3, words: ['water','green tea','herbal tea','peppermint tea','chamomile tea','black tea','lemon water','infused water'] },
+
+  // ============ NIGERIAN HEALTHY ============
+  nigerianVegSoups: { points: +1.5, words: ['okro soup','okoro soup','okra soup','efo riro','efo','bitterleaf soup','bitterleaf','ofe onugbu','vegetable soup','edikang ikong','afang soup','afang','egusi soup','egusi','ogbono soup','ogbono','ora soup','oha soup','uziza soup','ofe akwu lite','nsala soup','white soup'] },
+  nigerianProtein: { points: +1.0, words: ['moi moi','moimoi','bean cake','grilled suya','suya','fish pepper soup','chicken pepper soup','pepper soup','catfish soup','banga soup','ofe akwu','fisherman soup','groundnut soup','miyan taushe'] },
+  nigerianHealthyStaples: { points: +0.8, words: ['ukwa','abacha','african salad','tigernuts','garden egg','garden egg stew','zobo','kunu','fura da nono','boiled yam','yam and egg','yam porridge','unripe plantain','boiled plantain','roasted plantain','boli','ofada stew','ayamase','stockfish stew','crayfish soup'] },
+  nigerianLegumes: { points: +1.0, words: ['moin moin','bean porridge','ewa agoyin','black eyed beans','honey beans','gbegiri','wake','ewa','bean stew'] },
+
+  // ============ NIGERIAN NEUTRAL STAPLES ============
+  nigerianStarchy: { points: 0.0, words: ['eba','garri','fufu','pounded yam','amala','semovita','semo','wheat meal','tuwo','tuwo shinkafa','tuwo masara','oat eba','cassava fufu','plantain fufu'] },
+  nigerianRice: { points: 0.0, words: ['jollof rice','jollof','native jollof','ofada rice','ofada','coconut rice','fried rice','party rice','white rice and stew'] },
+  nigerianSnacks: { points: 0.0, words: ['robo','kokoro','kulikuli','kilishi'] },
+
+  // ============ UK EVERYDAY MEALS ============
+  ukHealthy: { points: +0.5, words: ['jacket potato','baked potato','grilled fish','grilled chicken','poached','steamed','stew','casserole','roast dinner','sunday roast','roast chicken','roast turkey','shepherd pie','cottage pie','vegetable curry','lentil curry','chickpea curry','dal','dahl','soup and bread','sandwich with salad'] },
+
+  // ============ FAST FOOD & TAKEAWAY ============
+  fastFood: { points: -2.0, words: ['mcdonald','mcdonalds','kfc','burger king','dominos','domino','pizza hut','nandos','five guys','subway','greggs','pizza express','papa johns','chicken cottage','dixy chicken','morley','wings','wingstop','shake shack','leon','honest burger','byronburger','takeaway','take away','take-away','fast food','drive thru','drive through'] },
+
+  // ============ FRIED FOODS ============
+  fried: { points: -1.5, words: ['fried','deep fried','deep-fried','crispy fried','fry-up','battered','tempura'] },
+  nigerianFried: { points: -1.0, words: ['fried plantain','dodo','puff puff','buns','chin chin','fried yam','fried fish','akara fried','fried akara'] },
+
+  // ============ SUGARY FOODS ============
+  sugary: { points: -1.5, words: ['cake','biscuit','cookie','chocolate','ice cream','candy','sweets','donut','doughnut','pastry','muffin','croissant','danish','waffle','brownie','cheesecake','trifle','custard','pudding','treacle','syrup','frosting','icing','jam','jelly','lollipop','haribo','percy pig'] },
+
+  // ============ FIZZY & ALCOHOLIC DRINKS ============
+  fizzyDrink: { points: -1.5, words: ['coke','coca cola','pepsi','fanta','sprite','7up','dr pepper','soda','fizzy','energy drink','red bull','monster','lucozade','ribena','capri sun','irn bru','tango'] },
+  alcohol: { points: -1.5, words: ['beer','wine','vodka','whisky','whiskey','rum','gin','cocktail','alcohol','lager','ale','cider','prosecco','champagne','shots','guinness','heineken','corona','stella','baileys','sambuca'] },
+
+  // ============ PROCESSED & JUNK ============
+  processed: { points: -1.0, words: ['sausage','bacon','hot dog','nugget','crisps','chips','fries','instant noodle','pot noodle','ready meal','microwave meal','tinned spaghetti','spam','corned beef','pepperoni','salami','chorizo','black pudding','white pudding','scotch egg'] },
+  nigerianProcessed: { points: -1.2, words: ['indomie','gala','sausage roll','meat pie','roasted plantain chips','plantain chips'] },
+
+  // ============ REFINED CARBS ============
+  refined: { points: -0.5, words: ['white bread','white rice','white pasta','baguette','bagel','naan','white tortilla','wrap','pitta'] },
+
+  // ============ HEAVY / CREAMY ============
+  heavyCream: { points: -0.8, words: ['creamy','cream sauce','mayo','mayonnaise','heavy cream','butter sauce','hollandaise','bechamel','cheese sauce','full fat','double cream','clotted cream','loaded','smothered'] },
+
+  // ============ UK UNHEALTHY ============
+  ukUnhealthy: { points: -1.0, words: ['full english','fry up','fish and chips','fish n chips','kebab','doner kebab','shawarma','fried chicken','southern fried','battered','pasty','cornish pasty','steak bake','sausage roll','garlic bread','loaded fries','mac and cheese','pot noodle'] },
 };
 
 function scoreMeal(name) {
@@ -278,7 +316,7 @@ function HabitTracker() {
 
   useEffect(() => {
     const p = safeGet(STORAGE.pillars); if (p) setPillars(mergePillars(p));
-      const e = safeGet(STORAGE.entries); if (e) setEntries(e);
+    const e = safeGet(STORAGE.entries); if (e) setEntries(e);
     const m = safeGet(STORAGE.meals); if (m) setMeals(m);
       setLoading(false);
   }, []);
@@ -290,7 +328,7 @@ function HabitTracker() {
 
   const savePillars = (n) => { setPillars(n); safeSet(STORAGE.pillars, n); };
   const saveEntries = (n) => { setEntries(n); safeSet(STORAGE.entries, n); };
-  const saveMeals = (n) => { setMeals(n);   safeSet(STORAGE.meals, n); };
+  const saveMeals   = async (n) => { setMeals(n);   safeSet(STORAGE.meals, n); };
 
   const dateKey = fmt(selectedDate);
   const dayData = entries[dateKey] || {};
