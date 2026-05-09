@@ -1,6 +1,6 @@
 # Six Pillars — Habit Tracker PWA
 
-A daily habit tracker built as a Progressive Web App. Designed for installation on iPhone home screens via "Add to Home Screen" in Safari.
+A daily habit tracker built as a Progressive Web App. Designed for installation on iPhone home screens via "Add to Home Screen" in Safari, Chrome or Edge.
 
 ## Files in this package
 
