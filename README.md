@@ -1,6 +1,6 @@
 # Six Pillars — Habit Tracker PWA
 
-A daily habit tracker built as a Progressive Web App. Designed for installation on iPhone home screens via "Add to Home Screen" in Safari.
+A daily habit tracker built as a Progressive Web App. Designed for installation on iPhone home screens via "Add to Home Screen" in Safari, Chrome or Edge.
 
 ## Files in this package
 
@@ -11,19 +11,19 @@ A daily habit tracker built as a Progressive Web App. Designed for installation 
 
 ## Hosting
 
-This is a static site — drop it on any static host (GitHub Pages, Netlify, Cloudflare Pages, Vercel).
+This is a static site that is hosted at any static host like GitHub Pages, but can be moved to Netlify, Cloudflare Pages, Vercel, etc.
 
 ## Data storage
 
-All data is stored in the browser's `localStorage`. Data persists across sessions and survives the device being restarted, but is lost if you clear Safari's website data or uninstall the home-screen app.
+All data is stored in the browser's `localStorage`. Data persists across sessions and survives the device being restarted, but is lost if you clear the browser cache, website data or uninstall the home-screen app.
 
-Use the in-app Export/Import feature to keep backups.
+There is an in-app Export/Import feature to keep backups of data input in the app.
 
 ## Updating
 
 When you push changes:
 1. Bump the `CACHE_NAME` in `sw.js` (e.g. `six-pillars-v1` → `six-pillars-v2`)
-2. The service worker will detect the new version on next load and clear the old cache
+2. The service worker will detect the new version on the next load and clear the old cache
 
 ## Tech
 
