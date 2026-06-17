@@ -1,7 +1,6 @@
 {
   "name": "Six Pillars",
   "short_name": "Six Pillars",
-  "description": "Daily habit tracker — pillars, time, meals, streaks",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

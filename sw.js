@@ -1,6 +1,5 @@
-const CACHE_NAME = 'six-pillars-v2';
+const CACHE_NAME = 'six-pillars-v4';
 const URLS_TO_CACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
-
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(URLS_TO_CACHE).catch(() => {})));
   self.skipWaiting();
@@ -11,7 +10,6 @@ self.addEventListener('activate', (event) => {
 });
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-  // Never cache API calls to the Worker
   if (request.url.includes('workers.dev')) { return; }
   if (request.mode === 'navigate' || request.destination === 'document') {
     event.respondWith(
